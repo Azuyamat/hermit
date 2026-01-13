@@ -17,13 +17,13 @@ type Executor struct {
 
 func New() *Executor {
 	registry := NewBuiltinRegistry()
-	registry.Register(&builtins.Cd{})
-	registry.Register(&builtins.Clear{})
-	registry.Register(&builtins.Echo{})
-	registry.Register(&builtins.Pwd{})
-	registry.Register(&builtins.Exit{})
-	registry.Register(&builtins.Export{})
-	registry.Register(&builtins.Cat{})
+	registry.Register(builtins.NewCd())
+	registry.Register(builtins.NewClear())
+	registry.Register(builtins.NewEcho())
+	registry.Register(builtins.NewPwd())
+	registry.Register(builtins.NewExit())
+	registry.Register(builtins.NewExport())
+	registry.Register(builtins.NewCat())
 
 	return &Executor{
 		builtins: registry,

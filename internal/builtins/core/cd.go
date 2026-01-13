@@ -1,4 +1,4 @@
-package builtins
+package core
 
 import (
 	"fmt"
@@ -18,12 +18,22 @@ func (c *Cd) Name() string {
 func (c *Cd) Execute(args []string, context *types.ExecutionContext, stdin io.Reader, stdout io.Writer, stderr io.Writer) error {
 	var target string
 
-	if len(args) == 0 {
+	oldDir, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("failed to get current directory: %w", err)
+	}
+
+	if len(args) == 0 || args[0] == "~" {
 		user, err := user.Current()
 		if err != nil {
 			return fmt.Errorf("failed to get current user: %w", err)
 		}
 		target = user.HomeDir
+	} else if args[0] == "-" {
+		target = context.GetEnv("OLDPWD")
+		if target == "" {
+			return fmt.Errorf("OLDPWD not set")
+		}
 	} else {
 		target = args[0]
 	}
@@ -31,6 +41,14 @@ func (c *Cd) Execute(args []string, context *types.ExecutionContext, stdin io.Re
 	if err := os.Chdir(target); err != nil {
 		return fmt.Errorf("failed to change directory: %w", err)
 	}
+
+	newDir, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("failed to get new directory: %w", err)
+	}
+
+	context.SetEnv("OLDPWD", oldDir)
+	context.SetEnv("PWD", newDir)
 
 	return nil
 }
