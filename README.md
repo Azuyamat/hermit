@@ -1,94 +1,31 @@
 # Hermit
 
-Hermit is a lightweight shell designed to be cross-platform and easy to use while providing quality of life features for developers.
+A lightweight, cross-platform shell that bridges the gap between Unix and Windows environments.
 
-## Commands
+## Why Hermit?
 
-Hermit aims to provide a cross-platform implementation of common Unix-style commands. Below is the current implementation status:
+Write once, run anywhere. Hermit provides a unified shell experience across Windows, macOS, and Linux by implementing familiar Unix-style commands as native builtins. Whether you're a developer juggling multiple operating systems or a team maintaining cross-platform scripts, Hermit eliminates the friction of platform-specific command variations.
 
-### Core Shell Builtins
-- [X] `cd` - Change directory
-- [X] `pwd` - Print working directory
-- [X] `exit` - Exit the shell
-- [X] `export` - Set environment variables
-- [X] `echo` - Display text
-- [X] `clear` - Clear the terminal screen
-- [ ] `set` - Set shell variables (non-exported)
-- [ ] `unset` - Unset variables
-- [ ] `alias` - Create command aliases
-- [ ] `unalias` - Remove aliases
-- [ ] `history` - Command history
-- [ ] `source` / `.` - Execute commands from file
+### Built for Speed
 
-### File Operations
-- [X] `cat` - Concatenate and display files
-- [X] `ls` - List directory contents
-- [ ] `cp` - Copy files/directories
-- [ ] `mv` - Move/rename files
-- [ ] `rm` - Remove files/directories
-- [ ] `mkdir` - Create directories
-- [ ] `rmdir` - Remove empty directories
-- [ ] `touch` - Create empty file or update timestamp
-- [ ] `ln` - Create links
-- [ ] `chmod` - Change file permissions (Unix-style, no-op on Windows)
-- [ ] `chown` - Change file owner (Unix-style, no-op on Windows)
+Traditional shells spawn external processes for even simple commands like `ls` or `cat`. Every invocation means process creation overhead, disk I/O to locate the binary, and context switching. Hermit's builtin commands execute directly within the shell process, eliminating this overhead entirely. The result? Commands that run instantly, scripts that fly, and a responsive terminal experience that feels snappier than traditional shells.
 
-### Text Processing
-- [ ] `grep` - Search text patterns
-- [ ] `sed` - Stream editor
-- [ ] `awk` - Pattern scanning and processing
-- [ ] `cut` - Remove sections from lines
-- [ ] `sort` - Sort lines
-- [ ] `uniq` - Report or omit repeated lines
-- [X] `wc` - Word, line, character count
-- [ ] `head` - Output first part of files
-- [ ] `tail` - Output last part of files
-- [ ] `tr` - Translate characters
-- [ ] `diff` - Compare files line by line
+This performance advantage compounds dramatically in scripts that call commands repeatedly. A loop processing hundreds of files with external `cat` and `grep` commands might take seconds or minutes; the same operations with Hermit's builtins complete in milliseconds.
 
-### Process Management
-- [ ] `ps` - Process status
-- [ ] `kill` - Send signal to process
-- [ ] `jobs` - List background jobs
-- [ ] `fg` - Bring job to foreground
-- [ ] `bg` - Continue job in background
-- [ ] `wait` - Wait for process completion
-- [ ] `sleep` - Delay for specified time
-- [ ] `time` - Time command execution
+### The "rc" Mystery
 
-### System Information
-- [ ] `env` - Display environment variables
-- [ ] `printenv` - Print environment variables
-- [ ] `which` - Locate command
-- [ ] `whereis` - Locate binary/source/man page
-- [ ] `whoami` - Print current user
-- [ ] `hostname` - Show/set system hostname
-- [ ] `uname` - Print system information
-- [ ] `date` - Display or set date and time
-- [ ] `uptime` - Show system uptime
+You might notice Hermit uses `~/.hermitrc` for configuration. Ever wonder why shell config files end in "rc"? It stands for "run commands"—a naming convention inherited from the 1965 CTSS operating system's `runcom` facility. When shells like Unix's `/bin/sh` adopted this pattern, they abbreviated it to "rc". So when you edit `.bashrc`, `.zshrc`, or `.hermitrc`, you're literally editing a list of commands that run at shell startup, carrying forward a 60-year-old tradition.
 
-### Network Utilities
-- [ ] `ping` - Test network connectivity
-- [ ] `curl` - Transfer data from URLs
-- [ ] `wget` - Download files from web
-- [ ] `ssh` - Secure shell client
-- [ ] `scp` - Secure copy
+## Features
 
-### Archive & Compression
-- [ ] `tar` - Archive utility
-- [ ] `zip` - Package and compress files
-- [ ] `unzip` - Extract compressed files
-- [ ] `gzip` / `gunzip` - Compress/decompress files
+- **Cross-platform builtins**: Common Unix commands work identically on Windows, macOS, and Linux
+- **Fast execution**: Native builtin commands with zero process spawning overhead
+- **Shell essentials**: Pipes, I/O redirection, logical operators (`&&`, `||`), and command chaining
+- **Developer-friendly**: Built with scripting and automation in mind
 
-### Miscellaneous
-- [ ] `test` / `[` - Evaluate conditional expressions
-- [ ] `expr` - Evaluate expressions
-- [ ] `basename` - Strip directory and suffix from filenames
-- [ ] `dirname` - Strip last component from file name
-- [ ] `find` - Search for files in directory hierarchy
-- [ ] `xargs` - Build and execute command lines
-- [ ] `tee` - Read from stdin and write to stdout and files
-- [ ] `yes` - Output a string repeatedly
+## Getting Started
+
+See [BUILTINS.md](BUILTINS.md) for the complete list of implemented and planned commands.
 
 ## Roadmap
 
