@@ -1,27 +1,29 @@
 package core
 
 import (
-	"io"
+	"strings"
 
+	"github.com/azuyamat/hermit/internal/command"
 	"github.com/azuyamat/hermit/internal/types"
 )
 
 type Echo struct{}
 
-func (e *Echo) Name() string {
-	return "echo"
+func (e *Echo) Metadata() command.Metadata {
+	return command.NewMetadataBuilder("echo", "Display a line of text").
+		Usage("echo [options] [string ...]").
+		Flags(command.NewBoolFlag("no-newline", "n", "Do not output the trailing newline").Build()).
+		Build()
 }
 
-func (e *Echo) Execute(args []string, context *types.ExecutionContext, stdin io.Reader, stdout io.Writer, stderr io.Writer) error {
-	for _, arg := range args {
-		_, err := io.WriteString(stdout, arg+" ")
-		if err != nil {
-			return err
-		}
+func (e *Echo) Execute(ctx *command.Context, shell *types.ExecutionContext) error {
+	output := strings.Join(ctx.Args(), " ")
+
+	if ctx.Bool("no-newline") {
+		ctx.Print(output)
+	} else {
+		ctx.Println(output)
 	}
-	_, err := io.WriteString(stdout, "\n")
-	if err != nil {
-		return err
-	}
+
 	return nil
 }

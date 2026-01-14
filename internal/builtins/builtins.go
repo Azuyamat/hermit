@@ -3,33 +3,21 @@ package builtins
 import (
 	"github.com/azuyamat/hermit/internal/builtins/core"
 	"github.com/azuyamat/hermit/internal/builtins/file"
-	"github.com/azuyamat/hermit/internal/types"
+	"github.com/azuyamat/hermit/internal/command"
 )
 
-func NewCd() types.Builtin {
-	return &core.Cd{}
-}
-
-func NewClear() types.Builtin {
-	return &core.Clear{}
-}
-
-func NewEcho() types.Builtin {
-	return &core.Echo{}
-}
-
-func NewExit() types.Builtin {
-	return &core.Exit{}
-}
-
-func NewExport() types.Builtin {
-	return &core.Export{}
-}
-
-func NewPwd() types.Builtin {
-	return &core.Pwd{}
-}
-
-func NewCat() types.Builtin {
-	return &file.Cat{}
+func RegisterCoreBuiltins(manager *command.Manager) {
+	manager.RegisterAll(
+		&core.Cd{},
+		&core.Clear{},
+		&core.Echo{},
+		&core.Exit{},
+		&core.Export{},
+		&core.Pwd{},
+		&True{},
+		&False{},
+		&file.Cat{},
+		&file.Wc{},
+		&file.Ls{},
+	)
 }

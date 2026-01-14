@@ -7,9 +7,10 @@ import (
 )
 
 type Command struct {
-	Token token.Token
-	Name  string
-	Args  []string
+	Token     token.Token
+	Name      string
+	Args      []Argument
+	Redirects []Redirect
 }
 
 func (c *Command) statementNode() {}
@@ -23,7 +24,13 @@ func (c *Command) String() string {
 	out.WriteString(c.Name)
 	for _, arg := range c.Args {
 		out.WriteString(" ")
-		out.WriteString(arg)
+		out.WriteString(arg.String())
 	}
+
+	for _, redirect := range c.Redirects {
+		out.WriteString(" ")
+		out.WriteString(redirect.String())
+	}
+
 	return out.String()
 }

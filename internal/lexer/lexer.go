@@ -33,7 +33,6 @@ func (l *Lexer) readChar() {
 }
 
 // See the next character without moving the position forward
-// Useful for lookahead operations such as distinguishing between '=' and '=='
 func (l *Lexer) peekChar() byte {
 	if l.readPosition >= len(l.input) {
 		return EOF
@@ -42,20 +41,35 @@ func (l *Lexer) peekChar() byte {
 	}
 }
 
-func (l *Lexer) readIdentifier() string {
+// readWord reads a continuous sequence of non-whitespace, non-operator characters
+// This handles paths like README.md, ../file.txt, /usr/bin/cat as single tokens
+func (l *Lexer) readWord() string {
 	start := l.position
-	for isIdentifierChar(l.ch) {
+	for !l.isDelimiter(l.ch) && l.ch != EOF {
 		l.readChar()
 	}
 	return l.input[start:l.position]
 }
 
-func (l *Lexer) readNumber() string {
+// readIdentifier reads a valid identifier (letters, digits, underscores)
+func (l *Lexer) readIdentifier() string {
 	start := l.position
-	for isDigit(l.ch) {
+	for isLetter(l.ch) || isDigit(l.ch) || l.ch == '_' {
 		l.readChar()
 	}
 	return l.input[start:l.position]
+}
+
+// isDelimiter returns true for characters that separate tokens
+func (l *Lexer) isDelimiter(ch byte) bool {
+	return isWhitespace(ch) ||
+		ch == '|' || ch == '>' || ch == '<' ||
+		ch == '&' || ch == ';' ||
+		ch == '(' || ch == ')' ||
+		ch == '{' || ch == '}' ||
+		ch == '[' || ch == ']' ||
+		ch == '"' || ch == '\'' || ch == '`' ||
+		ch == '$' // Stop at $ for command substitution
 }
 
 func (l *Lexer) readString(quote byte) (string, error) {
@@ -97,150 +111,55 @@ func (l *Lexer) NextToken() (token.Token, error) {
 	l.skipWhitespace()
 
 	switch l.ch {
-	case '=':
-		forwardIsEqual := l.peekChar() == '='
-		if forwardIsEqual {
-			ch := l.ch
-			l.readChar()
-			literal := string(ch) + string(l.ch)
-			tok = token.New(token.EQ, literal, l.lineNumber, l.columnNumber-1)
-		} else {
-			tok = token.New(token.ASSIGN, string(l.ch), l.lineNumber, l.columnNumber)
-		}
-	case '+':
-		tok = token.New(token.PLUS, string(l.ch), l.lineNumber, l.columnNumber)
-	case '-':
-		next := l.peekChar()
-		if isLetter(next) || next == '-' {
-			l.readChar()
-			literal := "-"
-
-			if next == '-' {
-				literal += string(l.ch)
-				l.readChar()
-			}
-
-			literal += l.readIdentifier()
-
-			tok = token.New(token.FLAG, literal, l.lineNumber, l.columnNumber-len(literal))
-			return tok, nil
-		} else if isWhitespace(next) || next == EOF {
-			tok = token.New(token.IDENT, "-", l.lineNumber, l.columnNumber)
-		} else {
-			tok = token.New(token.MINUS, string(l.ch), l.lineNumber, l.columnNumber)
-		}
-	case '!':
-		forwardIsEqual := l.peekChar() == '='
-		if forwardIsEqual {
-			ch := l.ch
-			l.readChar()
-			literal := string(ch) + string(l.ch)
-			tok = token.New(token.NOT_EQ, literal, l.lineNumber, l.columnNumber-1)
-		} else {
-			tok = token.New(token.BANG, string(l.ch), l.lineNumber, l.columnNumber)
-		}
-	case '*':
-		tok = token.New(token.ASTERISK, string(l.ch), l.lineNumber, l.columnNumber)
-	case '/':
-		tok = token.New(token.SLASH, string(l.ch), l.lineNumber, l.columnNumber)
-	case '%':
-		tok = token.New(token.PERCENT, string(l.ch), l.lineNumber, l.columnNumber)
-	case '^':
-		tok = token.New(token.CARET, string(l.ch), l.lineNumber, l.columnNumber)
-	case '&':
-		tok = token.New(token.AMPERSAND, string(l.ch), l.lineNumber, l.columnNumber)
 	case '|':
-		tok = token.New(token.PIPE, string(l.ch), l.lineNumber, l.columnNumber)
-	case '~':
-		tok = token.New(token.TILDE, string(l.ch), l.lineNumber, l.columnNumber)
-	case '<':
-		forwardIsLessThan := l.peekChar() == '<'
-		forwardIsEqual := l.peekChar() == '='
-		if forwardIsLessThan {
+		if l.peekChar() == '|' {
 			ch := l.ch
 			l.readChar()
-			literal := string(ch) + string(l.ch)
-			tok = token.New(token.LSHIFT, literal, l.lineNumber, l.columnNumber-1)
-		} else if forwardIsEqual {
-			ch := l.ch
-			l.readChar()
-			literal := string(ch) + string(l.ch)
-			tok = token.New(token.LE, literal, l.lineNumber, l.columnNumber-1)
+			tok = token.New(token.OR, string(ch)+string(l.ch), l.lineNumber, l.columnNumber)
 		} else {
-			tok = token.New(token.LT, string(l.ch), l.lineNumber, l.columnNumber)
+			tok = token.New(token.PIPE, string(l.ch), l.lineNumber, l.columnNumber)
 		}
-	case '>':
-		forwardIsGreaterThan := l.peekChar() == '>'
-		forwardIsEqual := l.peekChar() == '='
-		if forwardIsGreaterThan {
-			ch := l.ch
-			l.readChar()
-			literal := string(ch) + string(l.ch)
-			tok = token.New(token.RSHIFT, literal, l.lineNumber, l.columnNumber-1)
-		} else if forwardIsEqual {
-			ch := l.ch
-			l.readChar()
-			literal := string(ch) + string(l.ch)
-			tok = token.New(token.GE, literal, l.lineNumber, l.columnNumber-1)
-		} else {
-			tok = token.New(token.GT, string(l.ch), l.lineNumber, l.columnNumber)
-		}
-	case ',':
-		tok = token.New(token.COMMA, string(l.ch), l.lineNumber, l.columnNumber)
-	case ';':
-		tok = token.New(token.SEMICOLON, string(l.ch), l.lineNumber, l.columnNumber)
-	case ':':
-		tok = token.New(token.COLON, string(l.ch), l.lineNumber, l.columnNumber)
-	case '?':
-		tok = token.New(token.QUESTION, string(l.ch), l.lineNumber, l.columnNumber)
-	case '.':
-		tok = token.New(token.DOT, string(l.ch), l.lineNumber, l.columnNumber)
+		l.readChar()
 	case '(':
 		tok = token.New(token.LPAREN, string(l.ch), l.lineNumber, l.columnNumber)
+		l.readChar()
 	case ')':
 		tok = token.New(token.RPAREN, string(l.ch), l.lineNumber, l.columnNumber)
+		l.readChar()
 	case '{':
 		tok = token.New(token.LBRACE, string(l.ch), l.lineNumber, l.columnNumber)
+		l.readChar()
 	case '}':
 		tok = token.New(token.RBRACE, string(l.ch), l.lineNumber, l.columnNumber)
-	case '[':
-		tok = token.New(token.LBRACKET, string(l.ch), l.lineNumber, l.columnNumber)
-	case ']':
-		tok = token.New(token.RBRACKET, string(l.ch), l.lineNumber, l.columnNumber)
-	case '"', '\'', '`':
-		quote := l.ch
-		str, err := l.readString(quote)
-		if err != nil {
-			return token.Token{}, err
-		}
-		var tokenType token.TokenType
-		switch quote {
-		case '"':
-			tokenType = token.DOUBLE_QUOTED_STRING
-		case '\'':
-			tokenType = token.SINGLE_QUOTED_STRING
-		case '`':
-			tokenType = token.BACKTICK_STRING
-		}
-		tok = token.New(tokenType, str, l.lineNumber, l.columnNumber)
-	case EOF:
-		tok = token.New(token.EOF, "", l.lineNumber, l.columnNumber)
-	default:
-		if isLetter(l.ch) {
-			literal := l.readIdentifier()
-			tokenType := token.LookupIdent(literal)
-			tok = token.New(tokenType, literal, l.lineNumber, l.columnNumber-len(literal))
-			return tok, nil
-		} else if isDigit(l.ch) {
-			literal := l.readNumber()
-			tok = token.New(token.INT, literal, l.lineNumber, l.columnNumber-len(literal))
-			return tok, nil
+		l.readChar()
+	case '&':
+		if l.peekChar() == '&' {
+			ch := l.ch
+			l.readChar()
+			tok = token.New(token.AND, string(ch)+string(l.ch), l.lineNumber, l.columnNumber)
+		} else if l.peekChar() == '>' {
+			return l.lexRedirect()
 		} else {
 			tok = token.New(token.ILLEGAL, string(l.ch), l.lineNumber, l.columnNumber)
 		}
+		l.readChar()
+	case '$':
+		return l.lexVariable()
+	case '"', '\'', '`':
+		return l.lexQuotedString(l.ch)
+	case '>', '<':
+		return l.lexRedirect()
+	case '2':
+		if l.peekChar() == '>' {
+			return l.lexRedirect()
+		}
+		return l.lexLiteral()
+	case EOF:
+		tok = token.New(token.EOF, "", l.lineNumber, l.columnNumber)
 		return tok, nil
+	default:
+		return l.lexLiteral()
 	}
 
-	l.readChar()
 	return tok, nil
 }

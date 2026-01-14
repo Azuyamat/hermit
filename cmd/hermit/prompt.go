@@ -69,8 +69,6 @@ func getPrompt(config PromptConfig) string {
 	prompt.AddTextPart(":", ColorWhite)
 	if config.ShowCwd {
 		prompt.AddTextPart(cwd, ColorBlue)
-	} else {
-		prompt.AddTextPart("~", ColorBlue)
 	}
 	prompt.AddTextPart("$ ", ColorWhite)
 

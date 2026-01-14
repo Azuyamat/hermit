@@ -14,49 +14,55 @@ const (
 	ILLEGAL = "ILLEGAL"
 
 	IDENT = "IDENT"
-	INT   = "INT"
 	FLAG  = "FLAG"
 
 	DOUBLE_QUOTED_STRING = "DOUBLE_QUOTED_STRING"
 	SINGLE_QUOTED_STRING = "SINGLE_QUOTED_STRING"
 	BACKTICK_STRING      = "BACKTICK_STRING"
 
-	ASSIGN    = "="
-	PLUS      = "+"
-	MINUS     = "-"
-	BANG      = "!"
-	ASTERISK  = "*"
-	SLASH     = "/"
-	PERCENT   = "%"
-	CARET     = "^"
-	AMPERSAND = "&"
-	PIPE      = "|"
-	TILDE     = "~"
-	LSHIFT    = "<<"
-	RSHIFT    = ">>"
+	PIPE = "|"
 
-	LT = "<"
-	GT = ">"
-	LE = "<="
-	GE = ">="
+	LPAREN = "("
+	RPAREN = ")"
+	LBRACE = "{"
+	RBRACE = "}"
 
-	EQ     = "=="
-	NOT_EQ = "!="
+	AND = "AND" // &&
+	OR  = "OR"  // ||
 
-	QUESTION  = "?"
-	COLON     = ":"
-	COMMA     = ","
-	SEMICOLON = ";"
+	COMMAND_SUB_START = "$("
 
-	DOT = "."
+	REDIRECT_OUT        = "REDIRECT_OUT"        // >
+	REDIRECT_APPEND     = "REDIRECT_APPEND"     // >>
+	REDIRECT_IN         = "REDIRECT_IN"         // <
+	REDIRECT_ERR        = "REDIRECT_ERR"        // 2>
+	REDIRECT_ERR_APPEND = "REDIRECT_ERR_APPEND" // 2>>
+	REDIRECT_BOTH       = "REDIRECT_BOTH"       // &>
 
-	LPAREN   = "("
-	RPAREN   = ")"
-	LBRACE   = "{"
-	RBRACE   = "}"
-	LBRACKET = "["
-	RBRACKET = "]"
+	VARIABLE = "VARIABLE"
 )
+
+var keywords = map[string]TokenType{
+	"if":       "IF",
+	"then":     "THEN",
+	"else":     "ELSE",
+	"elif":     "ELIF",
+	"fi":       "FI",
+	"for":      "FOR",
+	"while":    "WHILE",
+	"do":       "DO",
+	"done":     "DONE",
+	"case":     "CASE",
+	"esac":     "ESAC",
+	"function": "FUNCTION",
+}
+
+func LookupIdent(ident string) TokenType {
+	if tok, ok := keywords[ident]; ok {
+		return tok
+	}
+	return IDENT
+}
 
 func New(tokenType TokenType, literal string, lineNumber, columnNumber int) Token {
 	return Token{

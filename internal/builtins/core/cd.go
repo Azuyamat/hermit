@@ -2,20 +2,27 @@ package core
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"os/user"
 
+	"github.com/azuyamat/hermit/internal/command"
 	"github.com/azuyamat/hermit/internal/types"
 )
 
 type Cd struct{}
 
-func (c *Cd) Name() string {
-	return "cd"
+func (c *Cd) Metadata() command.Metadata {
+	return command.Metadata{
+		Name:        "cd",
+		Description: "Change the current working directory",
+		Usage:       "cd [directory]",
+		Flags:       []command.FlagDef{},
+		MinArgs:     0,
+		MaxArgs:     1,
+	}
 }
 
-func (c *Cd) Execute(args []string, context *types.ExecutionContext, stdin io.Reader, stdout io.Writer, stderr io.Writer) error {
+func (c *Cd) Execute(ctx *command.Context, shell *types.ExecutionContext) error {
 	var target string
 
 	oldDir, err := os.Getwd()
@@ -23,19 +30,22 @@ func (c *Cd) Execute(args []string, context *types.ExecutionContext, stdin io.Re
 		return fmt.Errorf("failed to get current directory: %w", err)
 	}
 
-	if len(args) == 0 || args[0] == "~" {
+	if ctx.ArgCount() == 0 || ctx.ArgOr(0, "~") == "~" {
 		user, err := user.Current()
 		if err != nil {
 			return fmt.Errorf("failed to get current user: %w", err)
 		}
 		target = user.HomeDir
-	} else if args[0] == "-" {
-		target = context.GetEnv("OLDPWD")
-		if target == "" {
+	} else if ctx.ArgOr(0, "") == "-" {
+		target, ok := shell.GetEnv("OLDPWD")
+		if !ok {
 			return fmt.Errorf("OLDPWD not set")
 		}
+		shell.SetEnv("OLDPWD", oldDir)
+		shell.SetEnv("PWD", target)
+		return nil
 	} else {
-		target = args[0]
+		target = ctx.ArgOr(0, "")
 	}
 
 	if err := os.Chdir(target); err != nil {
@@ -47,8 +57,8 @@ func (c *Cd) Execute(args []string, context *types.ExecutionContext, stdin io.Re
 		return fmt.Errorf("failed to get new directory: %w", err)
 	}
 
-	context.SetEnv("OLDPWD", oldDir)
-	context.SetEnv("PWD", newDir)
+	shell.SetEnv("OLDPWD", oldDir)
+	shell.SetEnv("PWD", newDir)
 
 	return nil
 }

@@ -7,11 +7,6 @@ import (
 	"strings"
 )
 
-type Builtin interface {
-	Name() string
-	Execute(args []string, context *ExecutionContext, stdin io.Reader, stdout io.Writer, stderr io.Writer) error
-}
-
 type ExecutionContext struct {
 	Stdin  io.Reader
 	Stdout io.Writer
@@ -47,8 +42,9 @@ func (ec *ExecutionContext) SetEnv(key, value string) {
 	ec.Env[key] = value
 }
 
-func (ec *ExecutionContext) GetEnv(key string) string {
-	return ec.Env[key]
+func (ec *ExecutionContext) GetEnv(key string) (string, bool) {
+	value, ok := ec.Env[key]
+	return value, ok
 }
 
 func (ec *ExecutionContext) EnvSlice() []string {

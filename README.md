@@ -22,7 +22,7 @@ Hermit aims to provide a cross-platform implementation of common Unix-style comm
 
 ### File Operations
 - [X] `cat` - Concatenate and display files
-- [ ] `ls` - List directory contents
+- [X] `ls` - List directory contents
 - [ ] `cp` - Copy files/directories
 - [ ] `mv` - Move/rename files
 - [ ] `rm` - Remove files/directories
@@ -40,7 +40,7 @@ Hermit aims to provide a cross-platform implementation of common Unix-style comm
 - [ ] `cut` - Remove sections from lines
 - [ ] `sort` - Sort lines
 - [ ] `uniq` - Report or omit repeated lines
-- [ ] `wc` - Word, line, character count
+- [X] `wc` - Word, line, character count
 - [ ] `head` - Output first part of files
 - [ ] `tail` - Output last part of files
 - [ ] `tr` - Translate characters
