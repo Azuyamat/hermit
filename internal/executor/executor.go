@@ -4,12 +4,14 @@ import (
 	"github.com/azuyamat/hermit/internal/ast"
 	"github.com/azuyamat/hermit/internal/builtins"
 	"github.com/azuyamat/hermit/internal/command"
+	"github.com/azuyamat/hermit/internal/config"
 	"github.com/azuyamat/hermit/internal/types"
 )
 
 type Executor struct {
 	builtins *command.Manager
 	context  *types.ExecutionContext
+	config   *config.Config
 }
 
 func New() *Executor {
@@ -19,6 +21,7 @@ func New() *Executor {
 	return &Executor{
 		builtins: cmdManager,
 		context:  types.NewContext(),
+		config:   config.New(),
 	}
 }
 

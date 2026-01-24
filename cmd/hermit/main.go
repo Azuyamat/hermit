@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/azuyamat/hermit/internal/ast"
+	"github.com/azuyamat/hermit/internal/config"
 	"github.com/azuyamat/hermit/internal/executor"
 	"github.com/azuyamat/hermit/internal/lexer"
 	"github.com/azuyamat/hermit/internal/parser"
@@ -18,6 +19,12 @@ import (
 func main() {
 	debugFlag := flag.Bool("debug", false, "print lexer tokens and parse AST")
 	flag.Parse()
+
+	exec := executor.New()
+	err := sourceRCFile(exec)
+	if err != nil {
+		printError(err)
+	}
 
 	scanner := bufio.NewScanner(os.Stdin)
 
@@ -58,7 +65,6 @@ func main() {
 			printAST(program)
 		}
 
-		exec := executor.New()
 		err = exec.Execute(program)
 		if err != nil && !types.IsErrExitCode(err) {
 			printError(err)
@@ -66,6 +72,30 @@ func main() {
 		elapsed := time.Since(start)
 		fmt.Printf("Execution time: %.4f ms\n", elapsed.Seconds()*1000)
 	}
+}
+
+func sourceRCFile(exec *executor.Executor) error {
+	rcPath := config.GetRCPath()
+
+	if _, err := os.Stat(rcPath); os.IsNotExist(err) {
+		if err := config.CreateDefaultRC(rcPath); err != nil {
+			return err
+		}
+	}
+
+	content, err := os.ReadFile(rcPath)
+	if err != nil {
+		return err
+	}
+
+	l := lexer.New(string(content))
+	p := parser.New(l)
+	program, err := p.Parse()
+	if err != nil {
+		return err
+	}
+
+	return exec.Execute(program)
 }
 
 func printError(err error) {
